@@ -1,7 +1,21 @@
 #pragma once
 
+//	Includes
+#include <utility> //	pair
+#include <assert.h>	//	assert
+
 //	Defines
 #define EMULATOR_API volatile
+//	The stack is an array of 16 16-bit values, used to store the address that the interpreter shoud return to when finished with a subroutine.
+//	Chip-8 allows for up to 16 levels of nested subroutines.
+#define STACK_SIZE	16
+
+//	These computers typically were designed to use a television as a display,
+//	had between 1 and 4K of RAM (4096 bytes)
+#define MEMORY_CAP	4096
+
+//	Most Chip-8 programs start at location 0x200 (512)
+#define PROGRAM_SAFE_MEMORY_START	512
 
 //	Type definitions
 //	0x00 - 0xFF
@@ -18,11 +32,8 @@ using WORD = unsigned short;
 //		program non-safe range
 //	=======================================================================================
 
-//	These computers typically were designed to use a television as a display,
-//	had between 1 and 4K of RAM (4096 bytes)
-template <WORD memory_cap = 4096,
-//	Most Chip-8 programs start at location 0x200 (512)
-WORD program_safe_memory_start = 512>
+template <WORD memory_cap = MEMORY_CAP,
+	WORD program_safe_memory_start = PROGRAM_SAFE_MEMORY_START>
 class CChip8 {
 public:
 	//	Prototype
@@ -60,10 +71,12 @@ public:
 		WIDTH,
 		HEIGHT
 	};
-
+	
 	//	Handlers
 	template <BYTE base_w = 64, BYTE base_h = 32>
 	bool Initialize() {
+		m_has_been_initialized = false;
+
 		//	Memory
 		//	The first 512 bytes, from 0x000 to 0x1FF, are where the original interpreter was located,
 		//	and should not be used by programs.
@@ -79,17 +92,38 @@ public:
 			m_general_purpose_registers[i] = 0;
 		}
 
-		return true;
+		return (m_has_been_initialized = true);
 	};
 
 	~CChip8();
 
+	//	Inlined methods
+	//	Get handle to ram
+	inline EMULATOR_API BYTE* GetRam() const {
+		assert(m_has_been_initialized);
+		return m_ram;
+	}
+	
+	//	Get handle to stack
+	inline EMULATOR_API WORD* GetStack() {
+		assert(m_has_been_initialized);
+		return m_stack;
+	}
+
+	//	Get screen size
+	inline std::pair<BYTE, BYTE> GetScreenSize() const {
+		assert(m_has_been_initialized);
+		return std::make_pair(m_screen_size[_Screen::WIDTH],
+			m_screen_size[_Screen::HEIGHT]);
+	}
+
 private:
+	//	Emulator status flag
+	bool m_has_been_initialized;
+
+	//	Emulator data
 	BYTE m_screen_size[2];
 	EMULATOR_API BYTE m_general_purpose_registers[_V::LIST_SIZE];
 	EMULATOR_API BYTE* m_ram;
-
-	//	The stack is an array of 16 16-bit values, used to store the address that the interpreter shoud return to when finished with a subroutine.
-	//	Chip-8 allows for up to 16 levels of nested subroutines.
-	EMULATOR_API WORD m_stack[16];
+	EMULATOR_API WORD m_stack[STACK_SIZE];
 };
