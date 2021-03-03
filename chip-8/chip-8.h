@@ -1,10 +1,9 @@
 #pragma once
 
 //	Includes
-#include <memory.h> //	memset
-#include <utility> //	pair, swap
+#include <memory.h> //	memcpy_s
+#include <utility> //	swap
 #include <assert.h>	//	assert
-#include <vector> //	vector
 
 //	Defines
 //	The stack is an array of 16 16-bit values, used to store the address that the interpreter shoud return to when finished with a subroutine.
@@ -18,6 +17,9 @@
 //	Most Chip-8 programs start at location 0x200 (512)
 #define PROGRAM_SAFE_MEMORY_START	512
 
+//	5 * 16 = 80
+#define FONT_SET_SIZE	80
+
 //	Type definitions
 //	0x00 - 0xFF
 using BYTE = unsigned char;
@@ -27,7 +29,7 @@ using WORD = unsigned short;
 
 //	Resources
 //	[Section 2.4 (Display) - Fonts](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#font)
-constexpr static BYTE g_font_set[] = {
+constexpr static BYTE g_font_set[FONT_SET_SIZE] = {
 	//	0-9
 	0xF0, 0x90, 0x90, 0x90, 0xF0,
 	0x20, 0x60, 0x20, 0x20, 0x70,
@@ -137,7 +139,7 @@ public:
 		//
 		//	This is not a predicted occurence since Chip-8 have their own font, 
 		//	but who knows what our user might want to do?
-		static_assert(sizeof(g_font_set) < 0xFF);
+		static_assert(sizeof(g_font_set) == FONT_SET_SIZE);
 
 		m_has_been_initialized = false;
 
@@ -162,7 +164,7 @@ public:
 		}
 
 		//	Add font-set
-		for (BYTE i = 0; i < sizeof(g_font_set); ++i) {
+		for (BYTE i = FONT_SET_SIZE; i < FONT_SET_SIZE; ++i) {
 			m_ram[i] = g_font_set[i];
 		}
 
@@ -233,6 +235,6 @@ private:
 	//	 The program counter (PC) should be 16-bit, and is used to store the currently executing address.
 	WORD m_program_counter;
 
-	//	Instruction relevant reg
+	//	Instruction relevant register
 	WORD m_indice;
 };
