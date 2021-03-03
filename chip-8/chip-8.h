@@ -1,11 +1,12 @@
 #pragma once
 
 //	Includes
-#include <utility> //	pair
+#include <memory.h> //	memset
+#include <utility> //	pair, swap
 #include <assert.h>	//	assert
+#include <vector> //	vector
 
 //	Defines
-#define EMULATOR_API volatile
 //	The stack is an array of 16 16-bit values, used to store the address that the interpreter shoud return to when finished with a subroutine.
 //	Chip-8 allows for up to 16 levels of nested subroutines.
 #define STACK_SIZE	16
@@ -33,7 +34,8 @@ using WORD = unsigned short;
 //	=======================================================================================
 
 template <WORD memory_cap = MEMORY_CAP,
-	WORD program_safe_memory_start = PROGRAM_SAFE_MEMORY_START>
+	WORD program_safe_memory_start = PROGRAM_SAFE_MEMORY_START,
+	WORD stack_size = STACK_SIZE>
 class CChip8 {
 public:
 	//	Prototype
@@ -64,7 +66,7 @@ public:
 		 //	Deprecated for general use!
 		 _F, 
 
-		 LIST_SIZE, //	16 general purpose 8-bit registers
+		 LIST_SIZE //	16 general purpose 8-bit registers
 	};
 
 	enum _Screen {
@@ -77,44 +79,61 @@ public:
 	bool Initialize() {
 		m_has_been_initialized = false;
 
-		//	Memory
-		//	The first 512 bytes, from 0x000 to 0x1FF, are where the original interpreter was located,
-		//	and should not be used by programs.
-		m_ram = new BYTE[memory_cap];
+		m_program_counter = PROGRAM_SAFE_MEMORY_START;
+
+		//	RAM
+		m_ram.reserve(memory_cap);
+		
+		//	Stack
+		m_stack.reserve(stack_size);
+
+		//	Graphics
+		m_graphics.reserve(base_w * base_h);
 
 		//	The original implementation of the Chip-8 language used a 64x32-pixel 
 		//	monochrome display
 		m_screen_size[_Screen::WIDTH] = base_w;
 		m_screen_size[_Screen::HEIGHT] = base_h;
 
-		//	Null out registers
-		for (BYTE i = 0; i < _V::LIST_SIZE; ++i) {
-			m_general_purpose_registers[i] = 0;
-		}
+		//	Null out register
+		memset(m_general_purpose_registers, 0, _V::LIST_SIZE);
 
 		return (m_has_been_initialized = true);
 	};
-
+	
+	void Update();
+	
 	~CChip8();
 
-	//	Inlined methods
 	//	Get handle to ram
-	inline EMULATOR_API BYTE* GetRam() const {
+	inline const std::vector<BYTE>& GetRam() const {
 		assert(m_has_been_initialized);
 		return m_ram;
 	}
 	
 	//	Get handle to stack
-	inline EMULATOR_API WORD* GetStack() {
+	inline const std::vector<WORD>& GetStack() const {
 		assert(m_has_been_initialized);
 		return m_stack;
 	}
 
-	//	Get screen size
-	inline std::pair<BYTE, BYTE> GetScreenSize() const {
+	//	Get graphics handle
+	inline const std::vector<BYTE>& GetGraphics() {
 		assert(m_has_been_initialized);
-		return std::make_pair(m_screen_size[_Screen::WIDTH],
-			m_screen_size[_Screen::HEIGHT]);
+		return m_graphics;
+	}
+
+	//	Get screen size
+	inline BYTE* GetScreenSize() {
+		assert(m_has_been_initialized);
+		return m_screen_size;
+	}
+
+	//	Change screen size
+	inline void ChangeScreenSize(BYTE w, BYTE h) {
+		assert(m_has_been_initialized);
+		m_screen_size[_Screen::WIDTH] = w;
+		m_screen_size[_Screen::HEIGHT] = h;
 	}
 
 private:
@@ -123,7 +142,13 @@ private:
 
 	//	Emulator data
 	BYTE m_screen_size[2];
-	EMULATOR_API BYTE m_general_purpose_registers[_V::LIST_SIZE];
-	EMULATOR_API BYTE* m_ram;
-	EMULATOR_API WORD m_stack[STACK_SIZE];
+	std::vector<BYTE> m_graphics;
+	BYTE m_general_purpose_registers[_V::LIST_SIZE];
+	std::vector<BYTE> m_ram;
+	std::vector<WORD> m_stack;
+	WORD m_opcode;
+
+	
+	//	 The program counter (PC) should be 16-bit, and is used to store the currently executing address.
+	WORD m_program_counter;
 };
