@@ -10,7 +10,7 @@ CChip8<>::~CChip8() {
 
 void CChip8<>::CheckGraphicsUpdate() {
 	static decltype(m_screen_size) old_screen_size;
-	memcpy(old_screen_size, m_screen_size, sizeof(m_screen_size));
+	memcpy_s(old_screen_size, sizeof(old_screen_size), m_screen_size, sizeof(m_screen_size));
 
 	if (old_screen_size != m_screen_size) {
 		auto graphics_size = m_screen_size[_Screen::WIDTH] * m_screen_size[_Screen::HEIGHT];
@@ -29,12 +29,14 @@ void CChip8<>::CheckGraphicsUpdate() {
 	}
 }
 
-void CChip8<>::ComputeInstruction(_Instructions instruction) {
-	switch (instruction) {
-	//	1nnn
-	case _Instructions::JP:
-		//	Jump to OPCODE & 0x0FFF
+void CChip8<>::ComputeInstruction() {
+	//	NNN registers
+	switch (INVERSE_NNN(m_opcode)) {
+	case _Instructions::JP_ADDR:
 		m_program_counter = GET_NNN(m_opcode);
+		break;
+
+	default:
 		break;
 	}
 }

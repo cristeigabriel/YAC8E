@@ -60,9 +60,21 @@ constexpr static BYTE g_font_set[] = {
 //	If you want to understand this very case, 
 //	think of & as an alpha mask.
 
+#define INVERSE_NNN(byte) byte & 0xF000
 #define GET_NNN(byte) byte & 0x0FFF
+
+#define INVERSE_N(byte) byte & 0xFFF0
+#define INVERSE_NIBBLE(byte) INVERSE_N(byte)
+
 #define GET_N(byte) byte & 0x000F
 #define GET_NIBBLE(byte) GET_N(byte)
+
+#define GET_X(byte) (byte & 0x0F00) >> 8;
+#define GET_Y(byte) (byte & 0x00F0) >> 4;
+
+#define INVERSE_KK(byte) byte & 0xFF00
+#define INVERSE_BYTE(byte) INVERSE_KK(byte)
+
 #define GET_KK(byte) byte & 0x00FF
 #define GET_BYTE(byte) GET_KK(byte)
 
@@ -101,41 +113,15 @@ public:
 
 		 LIST_SIZE //	16 general purpose 8-bit registers
 	};
-
-	enum _Instructions {
-		CLS,
-		RET,
-		SYS, //    addr
-		JP, //    addr
-		CALL, //    addr
-		SE_V,    //    Vx, BYTE
-		SNE, //    Vx, BYTE
-		SE_VV, //    Vx, Vy
-		LD_VV, //    Vx, Vy
-		OR,    //    Vx, Vy
-		AND, //    Vx, Vy
-		XOR, //    Vx, Vy
-		ADD, // Vx, Vy
-		SUB, // Vx, Vy
-		SHR, //    Vx {, Vy}
-		SUBN, // Vx, Vy
-		SHL, //    Vx {, Vy}
-		SNE_VV, //    Vx, Vy
-		LD_I_ADDR, //    I, addr
-		JP_V_addr, //    V0, addr
-		RND,    //    Vx, byte
-		DRW,    // Vx, Vy, nibble
-		SKP,    //    Vx
-		SKNP,    //    Vx
-		LD_V_DT,    //    Vx, DT
-		LD_V_K,        //    Vx, K
-		LD_DT_V,    //    DT, Vx
-		LD_ST_V,    //    ST,    Vx
-		ADD_I_V,    //    I, Vx
-		LD_F_V,    //    F, Vx
-		LD_B_V,    //    B, Vx
-		LD_DEREF_I_V,    //    [I], Vx
-		LD_V_DEREF_I,    // Vx, [I]
+	
+	constexpr struct _Instructions {
+		enum NNN : WORD {
+			SYS = 0x0000,
+			JP_ADDR = 0x1000,
+			CALL = 0x2000,
+			LD = 0xA000,
+			JP_VX_ADDR = 0xB000
+		};
 	};
 	
 	enum _Screen {
@@ -156,7 +142,7 @@ public:
 		m_has_been_initialized = false;
 
 		//	PC and I
-		m_program_counter = PROGRAM_SAFE_MEMORY_START;
+		m_program_counter = program_safe_memory_start;
 		m_indice = 0;
 
 		//	RAM
@@ -198,7 +184,8 @@ public:
 		return m_opcode;
 	}
 
-	void ComputeInstruction(_Instructions instruction);
+	//	Actual logic
+	void ComputeInstruction();
 
 	//	Get handle to ram
 	inline BYTE* GetRam() {

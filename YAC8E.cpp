@@ -8,6 +8,7 @@ int main() {
 
 	for (;;) {
 		my_emulator.ComputeByte();
+		my_emulator.ComputeInstruction();
 		my_emulator.CheckGraphicsUpdate();
 	}
 }
