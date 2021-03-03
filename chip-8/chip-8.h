@@ -134,11 +134,6 @@ public:
 	//	Handlers
 	template <BYTE base_w = 64, BYTE base_h = 32>
 	bool Initialize() {
-		//	Ensure that it's in BYTE range and therefore
-		//	that it'll also not overflow in program_safe_memory_start
-		//
-		//	This is not a predicted occurence since Chip-8 have their own font, 
-		//	but who knows what our user might want to do?
 		static_assert(sizeof(g_font_set) == FONT_SET_SIZE);
 
 		m_has_been_initialized = false;
