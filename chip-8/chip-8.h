@@ -198,14 +198,7 @@ public:
 		return m_opcode;
 	}
 
-	inline void ComputeInstruction(_Instructions instruction) {
-		switch (instruction) {
-		case _Instructions::JP:
-			//	Jump to OPCODE & 0x0FFF
-			m_program_counter = GET_NNN(m_opcode);
-			break;
-		}
-	}
+	void ComputeInstruction(_Instructions instruction);
 
 	//	Get handle to ram
 	inline BYTE* GetRam() {

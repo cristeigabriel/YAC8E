@@ -28,3 +28,13 @@ void CChip8<>::CheckGraphicsUpdate() {
 		std::swap(old_screen_size, new_screen_size);
 	}
 }
+
+void CChip8<>::ComputeInstruction(_Instructions instruction) {
+	switch (instruction) {
+	//	1nnn
+	case _Instructions::JP:
+		//	Jump to OPCODE & 0x0FFF
+		m_program_counter = GET_NNN(m_opcode);
+		break;
+	}
+}
