@@ -158,7 +158,6 @@ public:
 			m_screen_size[_Screen::HEIGHT],
 			m_graphics);
 		
-
 		//	Null out registers
 		for (BYTE i = 0; i < GENERAL_PURPOSE_REGISTERS_SIZE; ++i) {
 			m_general_purpose_registers[i] = 0;

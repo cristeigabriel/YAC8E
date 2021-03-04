@@ -70,7 +70,6 @@ void CChip8<>::ComputeInstruction() {
 
 		//	Set PC to NNN
 		m_program_counter = GET_NNN(m_opcode);
-
 		break;
 
 	case 0x3000:
@@ -81,7 +80,6 @@ void CChip8<>::ComputeInstruction() {
 		if (m_general_purpose_registers[x] & GET_KK(m_opcode)) {
 			m_program_counter += 2;
 		}
-
 		break;
 
 	case 0x4000:
@@ -91,15 +89,36 @@ void CChip8<>::ComputeInstruction() {
 		//	Compare register Vx to kk, and if they are not equal, increments the program counter by 2.
 		if (!(m_general_purpose_registers[x] & GET_KK(m_opcode))) {
 			m_program_counter += 2;
-		}
+		}		
+		break;
 		
+	case 0x5000:
+		//	Skip next instruction if Vx == Vy
+		LOG("$0x%x: SE V%x, V%x\n", m_program_counter, m_general_purpose_registers[x], m_general_purpose_registers[y]);
+
+		//	Compare register Vx to kk, and if they are not equal, increments the program counter by 2.
+		if (m_general_purpose_registers[x] & m_general_purpose_registers[y]) {
+			m_program_counter += 2;
+		}
+		break;
+
+	case 0x6000:
+		//	Set Vx = kk
+		LOG("$0x%x: LD V%x, %x\n", m_program_counter, m_general_purpose_registers[x], GET_KK(m_opcode));
+
+		m_general_purpose_registers[x] = GET_KK(m_opcode);
+		break;
+
+	case 0x7000:
+		//	Set Vx = Vx + kk
+		LOG("$0x%x: ADD V%x, %x\n", m_program_counter, m_general_purpose_registers[x], GET_KK(m_opcode));
+
+		m_general_purpose_registers[x] += GET_KK(m_opcode);
 		break;
 
 	default:
 		break;
 	}
-
-	LOG("Computed operand 0x%X\n", m_opcode);
 
 	if (!jump) {
 		//	Advance in the program
