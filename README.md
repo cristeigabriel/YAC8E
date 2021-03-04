@@ -15,7 +15,10 @@ YAC8E MIGHT be ported to Linux one day, but it is not yet confirmed or in plans.
 YAC8E allows for chip core elements and delimiters to be customized widely, but it is not a great idea to take upon it without knowledge of what you're doing, so watch out.
 
 # Support
-To see what instructions YAC8E supports and currently has, refer [here](https://github.com/cristeigabriel/YAC8E/blob/main/chip-8/chip-8.cpp#L32).
+To see what instructions YAC8E supports and currently has, refer [here](https://github.com/cristeigabriel/YAC8E/blob/main/chip-8/chip-8.cpp#L13).
+
+# Debugging
+YAC8E under Debug mode debugs by hand, and prnits out the initialization process, every computed byte, and every explicitly computed address alongside the pre-action PC, and how the action would be, out, under syntax form.
 
 # Licensing
 Do whatever the fuck you want with this, but put me (and contributors) somewhere there if you plan on using my project. Also, I'm not eligible to be held accountable for anything that you might be doing with this. It is solely your responsability.
