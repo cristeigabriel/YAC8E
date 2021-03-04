@@ -1,6 +1,7 @@
 #pragma once
 
 //	Includes
+#include <cstdio>	//	printf
 #include <memory.h> //	memcpy_s
 #include <utility> //	swap
 #include <assert.h>	//	assert
@@ -80,6 +81,14 @@ constexpr static BYTE g_font_set[FONT_SET_SIZE] = {
 #define GET_KK(byte) byte & 0x00FF
 #define GET_BYTE(byte) GET_KK(byte)
 
+#ifndef _DEBUG
+#define LOG(...)
+#define LOG_NO_FMT(...)
+#else
+#define LOG(fmt, ...) printf(fmt, __VA_ARGS__)
+#define LOG_NO_FMT(text) fputs(text, stdout)
+#endif
+
 template <WORD memory_cap = MEMORY_CAP,
 	WORD program_safe_memory_start = PROGRAM_SAFE_MEMORY_START,
 	WORD stack_size = STACK_SIZE>
@@ -136,38 +145,67 @@ public:
 	bool Initialize() {
 		static_assert(sizeof(g_font_set) == FONT_SET_SIZE);
 
-		m_has_been_initialized = false;
+		LOG_NO_FMT("Passed first check (g_font_set == FONT_SET_SIZE)\n");
 
-		//	PC and I
+		//	PC
 		m_program_counter = program_safe_memory_start;
-		m_indice = 0;
+
+		LOG("Initialized Program Counter (PC) (base: %d/0x%X)\n", m_program_counter, m_program_counter);
+		
+		//	I
+		m_indice = { 0 };
+
+		LOG("Initialized Indice (I) (base: 0x%X)\n", m_indice);
 
 		//	RAM
 		m_ram = new BYTE[memory_cap];
 
-		//	Graphics
-		m_graphics = new BYTE[base_w * base_h];
+		LOG("Initialized RAM buffer (size: %d/0x%X) (0x%p)\n", memory_cap, memory_cap, m_ram);
+
+		//	Stack
+		for (BYTE i = 0; i < stack_size; ++i) {
+			m_stack[i] = {0};
+		}
+
+		LOG("Nulled out Stack buffer (size: %d/0x%X) (0x%p)\n", stack_size, stack_size, m_stack);
 
 		//	The original implementation of the Chip-8 language used a 64x32-pixel 
 		//	monochrome display
 		m_screen_size[_Screen::WIDTH] = base_w;
 		m_screen_size[_Screen::HEIGHT] = base_h;
 
-		//	Null out register
+		LOG("Set graphics width/height (%dx%d)\n", m_screen_size[_Screen::WIDTH],
+			m_screen_size[_Screen::HEIGHT]);
+		
+		//	Graphics
+		m_graphics = new BYTE[m_screen_size[_Screen::WIDTH] *
+			m_screen_size[_Screen::HEIGHT]];
+		
+		LOG("Initialized Graphics buffer (size: %d/0x%X) (0x%p)\n", m_screen_size[_Screen::WIDTH] *
+			m_screen_size[_Screen::HEIGHT], m_screen_size[_Screen::WIDTH] *
+			m_screen_size[_Screen::HEIGHT],
+			m_graphics);
+		
+
+		//	Null out registers
 		for (BYTE i = 0; i < _V::LIST_SIZE; ++i) {
 			m_general_purpose_registers[i] = 0;
 		}
 
+		LOG("Nulled out General Purpose Registers buffer (size: %d/0x%X) (0x%p)\n", _V::LIST_SIZE, _V::LIST_SIZE, m_general_purpose_registers);
+
 		//	Add font-set
 		for (BYTE i = FONT_SET_SIZE; i < FONT_SET_SIZE; ++i) {
 			m_ram[i] = g_font_set[i];
+			LOG("Wrote font set byte %d/0x%X from g_font_set + %d to RAM at m_ram + %d\n", g_font_set[i],
+				g_font_set[i], i, i);
 		}
+
+		LOG_NO_FMT("Finished initializing Chip-8 emulator instance\n");
 
 		return (m_has_been_initialized = true);
 	};
-	
-	void CheckGraphicsUpdate();
-	
+		
 	~CChip8();
 
 	//	Compute byte by getting operand
@@ -176,6 +214,8 @@ public:
 
 		//	Fetch Byte
 		m_opcode = m_ram[m_program_counter] << 8 | m_ram[m_program_counter + 1];
+
+		LOG("Computed operand 0x%X\n", m_opcode);
 	}
 
 	//	Fetch computed byte
