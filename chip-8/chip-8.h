@@ -18,6 +18,10 @@
 //	Most Chip-8 programs start at location 0x200 (512)
 #define PROGRAM_SAFE_MEMORY_START	512
 
+//	Chip-8 has 16 general purpose 8-bit registers, usually referred to as Vx, where x is a hexadecimal digit (0 through F). There is also a 16-bit register called I. This register is generally used to store memory addresses, 
+//	so only the lowest (rightmost) 12 bits are usually used.
+#define GENERAL_PURPOSE_REGISTERS_SIZE	16
+
 //	5 * 16 = 80 (0x50)
 #define FONT_SET_SIZE	80
 
@@ -72,14 +76,18 @@ constexpr static BYTE g_font_set[FONT_SET_SIZE] = {
 #define GET_N(byte) byte & 0x000F
 #define GET_NIBBLE(byte) GET_N(byte)
 
-#define GET_X(byte) (byte & 0x0F00) >> 8;
-#define GET_Y(byte) (byte & 0x00F0) >> 4;
+#define GET_X(byte) ((byte & 0x0F00) >> 8);
+#define GET_Y(byte) ((byte & 0x00F0) >> 4);
 
 #define INVERSE_KK(byte) byte & 0xFF00
 #define INVERSE_BYTE(byte) INVERSE_KK(byte)
 
 #define GET_KK(byte) byte & 0x00FF
 #define GET_BYTE(byte) GET_KK(byte)
+
+//	Set in stone opcodes
+#define CLS 0x00E0
+#define RET 0x00EE
 
 #ifndef _DEBUG
 #define LOG(...)
@@ -97,44 +105,6 @@ public:
 	//	Prototype
 	CChip8() = default;
 	
-	//	Chip-8 has 16 general purpose 8-bit registers, usually referred to as Vx, where x is a hexadecimal digit (0 through F). There is also a 16-bit register called I. This register is generally used to store memory addresses, 
-	//	so only the lowest (rightmost) 12 bits are usually used.
-	enum _V : BYTE {
-		 _0,
-		 _1,
-		 _2,
-		 _3,
-		 _4,
-		 _5,
-		 _6,
-		 _7,
-		 _8,
-		 _9,
-		 _A,
-		 _B,
-		 _C,
-		 _D,
-		 _E,
-
-		 //	The VF register should not be used by any program,
-		 //	as it is used as a flag by some instructions. See section 3.0, [Instructions](http://devernay.free.fr/hacks/chip8/C8TECH10.HTM#3.0) for details.
-
-		 //	Deprecated for general use!
-		 _F, 
-
-		 LIST_SIZE //	16 general purpose 8-bit registers
-	};
-	
-	struct _Instructions {
-		enum NNN : WORD {
-			SYS = 0x0000,
-			JP_ADDR = 0x1000,
-			CALL = 0x2000,
-			LD = 0xA000,
-			JP_VX_ADDR = 0xB000
-		};
-	};
-	
 	enum _Screen {
 		WIDTH,
 		HEIGHT
@@ -148,7 +118,7 @@ public:
 		//	PC
 		m_program_counter = program_safe_memory_start;
 
-		LOG("Initialized Program Counter (PC) (base: %d/0x%X)\n", m_program_counter, m_program_counter);
+		LOG("Initialized the Program Counter (PC) pseudo-register (base: %d/0x%X)\n", m_program_counter, m_program_counter);
 		
 		//	I
 		m_indice = { 0 };
@@ -166,6 +136,10 @@ public:
 		}
 
 		LOG("Nulled out Stack buffer (size: %d/0x%X) (0x%p)\n", stack_size, stack_size, m_stack);
+
+		m_stack_pointer = 0;
+
+		LOG("Set the Stack Pointer (SP) pseudo-register to current topmost of the stack (%d)\n", m_stack_pointer);
 
 		//	The original implementation of the Chip-8 language used a 64x32-pixel 
 		//	monochrome display
@@ -186,11 +160,11 @@ public:
 		
 
 		//	Null out registers
-		for (BYTE i = 0; i < _V::LIST_SIZE; ++i) {
+		for (BYTE i = 0; i < GENERAL_PURPOSE_REGISTERS_SIZE; ++i) {
 			m_general_purpose_registers[i] = 0;
 		}
 
-		LOG("Nulled out General Purpose Registers buffer (size: %d/0x%X) (0x%p)\n", _V::LIST_SIZE, _V::LIST_SIZE, m_general_purpose_registers);
+		LOG("Nulled out General Purpose Registers buffer (size: %d/0x%X) (0x%p)\n", GENERAL_PURPOSE_REGISTERS_SIZE, GENERAL_PURPOSE_REGISTERS_SIZE, m_general_purpose_registers);
 
 		//	Add font-set
 		for (BYTE i = 0; i < FONT_SET_SIZE; ++i) {
@@ -237,6 +211,11 @@ public:
 		return m_stack;
 	}
 
+	inline WORD GetStackPointer() {
+		assert(m_has_been_initialized);
+		return m_stack_pointer;
+	}
+
 	//	Get graphics handle
 	inline BYTE* GetGraphics() {
 		assert(m_has_been_initialized);
@@ -263,9 +242,10 @@ private:
 	//	Emulator data
 	BYTE m_screen_size[2];
 	BYTE* m_graphics;
-	BYTE m_general_purpose_registers[_V::LIST_SIZE];
+	BYTE m_general_purpose_registers[GENERAL_PURPOSE_REGISTERS_SIZE];
 	BYTE* m_ram;
 	WORD m_stack[stack_size];
+	WORD m_stack_pointer;
 	WORD m_opcode;
 	
 	//	 The program counter (PC) should be 16-bit, and is used to store the currently executing address.
