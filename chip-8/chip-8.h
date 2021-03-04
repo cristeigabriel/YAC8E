@@ -145,8 +145,6 @@ public:
 	bool Initialize() {
 		static_assert(sizeof(g_font_set) == FONT_SET_SIZE);
 
-		LOG_NO_FMT("Passed first check (g_font_set == FONT_SET_SIZE)\n");
-
 		//	PC
 		m_program_counter = program_safe_memory_start;
 
@@ -155,7 +153,7 @@ public:
 		//	I
 		m_indice = { 0 };
 
-		LOG("Initialized Indice (I) (base: 0x%X)\n", m_indice);
+		LOG("Initialized Indice (I) (base: %d/0x%X)\n", m_indice, m_indice);
 
 		//	RAM
 		m_ram = new BYTE[memory_cap];
@@ -195,10 +193,10 @@ public:
 		LOG("Nulled out General Purpose Registers buffer (size: %d/0x%X) (0x%p)\n", _V::LIST_SIZE, _V::LIST_SIZE, m_general_purpose_registers);
 
 		//	Add font-set
-		for (BYTE i = FONT_SET_SIZE; i < FONT_SET_SIZE; ++i) {
-			m_ram[i] = g_font_set[i];
-			LOG("Wrote font set byte %d/0x%X from g_font_set + %d to RAM at m_ram + %d\n", g_font_set[i],
-				g_font_set[i], i, i);
+		for (BYTE i = 0; i < FONT_SET_SIZE; ++i) {
+			m_ram[FONT_SET_SIZE + i] = g_font_set[i];
+			LOG("Wrote font set byte %d/0x%X from g_font_set[%d] to RAM at m_ram[%d]\n", g_font_set[i],
+				g_font_set[i], i, FONT_SET_SIZE + i);
 		}
 
 		LOG_NO_FMT("Finished initializing Chip-8 emulator instance\n");
@@ -211,7 +209,7 @@ public:
 	//	Compute byte by getting operand
 	inline void ComputeByte() {
 		assert(m_has_been_initialized);
-
+		
 		//	Fetch Byte
 		m_opcode = m_ram[m_program_counter] << 8 | m_ram[m_program_counter + 1];
 

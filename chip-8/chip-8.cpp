@@ -16,7 +16,7 @@ void CChip8<>::ComputeInstruction() {
 	//	NNN registers
 	switch (INVERSE_NNN(m_opcode)) {
 	case _Instructions::JP_ADDR:
-		LOG("$0x%x: JP, 0x%x\n", m_program_counter, GET_NNN(m_opcode));
+		LOG("$0x%x: JP, 0x%x", m_program_counter, GET_NNN(m_opcode));
 		m_program_counter = GET_NNN(m_opcode);
 		break; 
 
