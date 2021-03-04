@@ -1,6 +1,8 @@
 #include "chip-8.h"
 
 CChip8<>::~CChip8() {
+	assert(m_has_been_initialized);
+
 	//	Dispose of graphics
 	delete[] m_graphics;
 
@@ -9,6 +11,8 @@ CChip8<>::~CChip8() {
 }
 
 void CChip8<>::CheckGraphicsUpdate() {
+	assert(m_has_been_initialized);
+
 	static decltype(m_screen_size) old_screen_size;
 	memcpy_s(old_screen_size, sizeof(old_screen_size), m_screen_size, sizeof(m_screen_size));
 
@@ -30,6 +34,8 @@ void CChip8<>::CheckGraphicsUpdate() {
 }
 
 void CChip8<>::ComputeInstruction() {
+	assert(m_has_been_initialized);
+
 	//	NNN registers
 	switch (INVERSE_NNN(m_opcode)) {
 	case _Instructions::JP_ADDR:

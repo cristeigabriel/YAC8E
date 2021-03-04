@@ -17,7 +17,7 @@
 //	Most Chip-8 programs start at location 0x200 (512)
 #define PROGRAM_SAFE_MEMORY_START	512
 
-//	5 * 16 = 80
+//	5 * 16 = 80 (0x50)
 #define FONT_SET_SIZE	80
 
 //	Type definitions
@@ -116,7 +116,7 @@ public:
 		 LIST_SIZE //	16 general purpose 8-bit registers
 	};
 	
-	constexpr struct _Instructions {
+	struct _Instructions {
 		enum NNN : WORD {
 			SYS = 0x0000,
 			JP_ADDR = 0x1000,
@@ -172,12 +172,15 @@ public:
 
 	//	Compute byte by getting operand
 	inline void ComputeByte() {
+		assert(m_has_been_initialized);
+
 		//	Fetch Byte
 		m_opcode = m_ram[m_program_counter] << 8 | m_ram[m_program_counter + 1];
 	}
 
 	//	Fetch computed byte
 	inline BYTE FetchByte() {
+		assert(m_has_been_initialized);
 		return m_opcode;
 	}
 
