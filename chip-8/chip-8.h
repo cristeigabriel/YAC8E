@@ -176,7 +176,7 @@ public:
 
 		return (m_has_been_initialized = true);
 	};
-		
+
 	~CChip8();
 
 	//	Compute byte by getting operand
