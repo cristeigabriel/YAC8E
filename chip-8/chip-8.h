@@ -226,7 +226,7 @@ public:
 		assert(m_has_been_initialized);
 		return m_screen_size;
 	}
-
+	
 	//	Change screen size
 	inline void ChangeScreenSize(BYTE w, BYTE h) {
 		assert(m_has_been_initialized);
@@ -246,6 +246,8 @@ private:
 	WORD m_stack[stack_size];
 	WORD m_stack_pointer;
 	WORD m_opcode;
+	BYTE m_delay_timer;
+	BYTE m_sound_timer;
 	
 	//	 The program counter (PC) should be 16-bit, and is used to store the currently executing address.
 	WORD m_program_counter;

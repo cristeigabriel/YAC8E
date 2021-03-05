@@ -17,6 +17,7 @@ void CChip8<>::ComputeInstruction() {
 
 	BYTE x = GET_X(m_opcode);
 	BYTE y = GET_Y(m_opcode);
+	BYTE n = GET_N(m_opcode);
 
 	LOG("C PC: 0x%X: C SP: 0x%X C S[SP]: 0x%X C OP: 0x%X | <<", m_program_counter,
 		m_stack_pointer, m_stack[m_stack_pointer], m_opcode);
@@ -223,6 +224,60 @@ void CChip8<>::ComputeInstruction() {
 		}
 		break;
 
+	case 0xA000:
+		//	Set I = nnn
+		LOG("LD I, %X", GET_NNN(m_opcode));
+
+		m_indice = GET_NNN(m_opcode);
+		break;
+
+	case 0xB000:
+		//	Jump to location nnn + V0
+		LOG("JP V0, %X", GET_NNN(m_opcode));
+
+		jump = true;
+
+		m_program_counter = GET_NNN(m_opcode) + m_general_purpose_registers[0];
+		break;
+
+	case 0xC000:
+		//	Set Vx = random byte AND kk
+		LOG("RND V%X, %d", x, GET_NNN(m_opcode));
+
+		m_general_purpose_registers[x] = rand() % 256 & GET_KK(m_opcode);
+		break;
+
+	case 0xD000:
+		//	Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision
+		LOG("DRW %d, %d, %d", x, y, n);
+
+		m_general_purpose_registers[0xF] = 0;
+		for (WORD start = m_indice; start < m_indice + n; ++start) {
+			LOG("[ RENDER AT %d %d ]", m_general_purpose_registers[x], m_general_purpose_registers[y]);
+		}
+		break;
+
+	case 0xF000:
+		switch (GET_KK(m_opcode)) {
+		case 0x0007:
+			//	Set Vx = delay timer value
+			LOG("LD V%X, DT", x);
+
+			m_delay_timer = m_general_purpose_registers[x];
+			break;
+
+		case 0x0015:
+			//	Set delay timer = Vx
+			LOG("LD DT, V%X", x);
+
+			m_general_purpose_registers[x] = m_delay_timer;
+			break;
+
+		default:
+			break;
+		}
+
+		break;
 	default:
 		break;
 	}
