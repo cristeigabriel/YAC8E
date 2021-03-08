@@ -6,6 +6,9 @@ This is a learning project for me (Cristei Gabriel-Marian [@cristeigabriel]), me
 
 This project will include documentation to the topmost of my knowledge and of others within my ability and of the (possible) contributors to this project.
 
+# Next Milestone
+I'm not always available, so I can't provide this exactly now, but I'm working on a DirectX9 renderer for this project and my others. This'll, obviously, take a while, so until it's done I'll probably not commit much, considering most of the emulator, as of 09/03/2021, is mostly finished (outside of instructions relevant to the aforementioned, and ROM parsing, which are both do-able in little time, unlike a renderer, and perhaps audio handling!).
+
 # Platform
 YAC8E is officially developed on Windows, providing an out of the box ready experience for Visual Studio Community (2019) users, working on the most default of toolchains.
 
